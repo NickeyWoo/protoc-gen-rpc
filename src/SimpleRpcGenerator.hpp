@@ -21,8 +21,6 @@ public:
 	~SimpleRpcGenerator();
 
 	bool Check(const google::protobuf::FileDescriptor* file) const;
-	bool GenerateInitialize(google::protobuf::compiler::GeneratorContext* generator_context,
-							const char* szTemplates) const;
 
 	bool Generate(const google::protobuf::FileDescriptor* file,
 				  const std::string& parameter,

@@ -34,12 +34,6 @@ bool SimpleRpcGenerator::Check(const google::protobuf::FileDescriptor* file) con
 			file->extension_count() > 0);
 }
 
-bool SimpleRpcGenerator::GenerateInitialize(google::protobuf::compiler::GeneratorContext* generator_context, const char* szTemplates) const
-{
-	
-	return true;
-}
-
 bool SimpleRpcGenerator::Generate(const google::protobuf::FileDescriptor* file,
 								  const std::string& parameter,
 								  google::protobuf::compiler::GeneratorContext* generator_context,
@@ -51,15 +45,6 @@ bool SimpleRpcGenerator::Generate(const google::protobuf::FileDescriptor* file,
 	if(!szTemplatePath)
 	{
 		error->append("[error] not set PROTOCGENRPC_TEMPLATE env.");
-		BUILD_LOG((boost::format("%s\n") % *error).str());
-		BUILD_LOG((boost::format("============================ <<END CODE GENERATE %s>> ============================\n") % file->name()).str());
-		return false;
-	}
-
-	BUILD_LOG(">>> INITIALIZE PROJECT ENV\n");
-	if(!GenerateInitialize(generator_context, szTemplatePath))
-	{
-		error->append("[error] initialize project env fail.");
 		BUILD_LOG((boost::format("%s\n") % *error).str());
 		BUILD_LOG((boost::format("============================ <<END CODE GENERATE %s>> ============================\n") % file->name()).str());
 		return false;
