@@ -2,7 +2,7 @@
   Protoc-gen-rpc is third-party Add-ons for Protocol Buffers.
 
 ## Example ##
-**write '.proto' file, and declare RPC service.
+**write '.proto' file, and declare RPC service.**
 ```proto
 message Request
 {
@@ -21,7 +21,7 @@ service EchoService {
 }
 ```
 
-**exec protoc, auto generate rpc code.
+**exec protoc, auto generate rpc code.**
 ```shell
 	protoc --plugin=../bin/protoc-gen-rpc ./example.proto --rpc_out=./
 ```
