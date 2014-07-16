@@ -1,0 +1,24 @@
+
+import "import/inc.proto";
+
+message Request
+{
+	required int32 id = 1;
+}
+
+message Response
+{
+	required int32 id = 1;
+	required string Name = 2;
+}
+
+service EchoService {
+	rpc Echo(Request) returns(Response);
+	rpc InvertEcho(Response) returns(Request);
+	rpc UI(UIPara) returns(Response);
+}
+
+service GameLoginService {
+	rpc Login(Request) returns(Response);
+}
+
