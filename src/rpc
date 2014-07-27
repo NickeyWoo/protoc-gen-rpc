@@ -5,6 +5,8 @@
 # DATE: 2014/7/27
 #
 
+BASEPATH=`dirname $0`
+
 usage() {
 	echo "Usage: rpc [build|dump|help]"
 }
@@ -17,7 +19,7 @@ build() {
 	fi
 	OTHER=`other 3 "$*"`
 	PROTOCGENRPC_TEMPLATE=$3
-	protoc --plugin=protoc-gen-rpc --rpc_out=./ $2 $OTHER
+	protoc --plugin=$BASEPATH/protoc-gen-rpc --rpc_out=./ $2 $OTHER
 }
 
 dump() {
@@ -28,7 +30,7 @@ dump() {
 	fi
 	OTHER=`other 2 "$*"`
 	PROTOCGENRPC_TEMPLATE=""
-	protoc --plugin=protoc-gen-rpc --rpc_out=./ $2 $OTHER
+	protoc --plugin=$BASEPATH/protoc-gen-rpc --rpc_out=./ $2 $OTHER
 }
 
 other() {
