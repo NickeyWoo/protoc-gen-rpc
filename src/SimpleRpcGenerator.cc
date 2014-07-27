@@ -4,34 +4,143 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <dirent.h>
+
 #include <utility>
 #include <string>
 #include <vector>
 #include <map>
 #include <boost/format.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/scoped_ptr.hpp>
+
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/compiler/cpp/cpp_generator.h>
-
-#include <vector>
-#include <utility>
-
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/descriptor.pb.h>
 
-#include "Log.hpp"
 #include "SimpleRpcGenerator.hpp"
-#include "RpcService.hpp"
 
 SimpleRpcGenerator::SimpleRpcGenerator() {}
 
 SimpleRpcGenerator::~SimpleRpcGenerator() {}
 
-bool SimpleRpcGenerator::Check(const google::protobuf::FileDescriptor* file) const
+void SimpleRpcGenerator::GetTypeDict(const google::protobuf::Descriptor* pTypeDesc,
+									 ctemplate::TemplateDictionary* pTypeDict) const
 {
-	return (file->message_type_count() > 0 ||
-			file->enum_type_count() > 0 ||
-			file->extension_count() > 0);
+	pTypeDict->SetValue("TYPE_NAME", pTypeDesc->name());
+
+	const google::protobuf::FileDescriptor* pTypeFileDesc = pTypeDesc->file();
+	if(!pTypeFileDesc->package().empty())
+	{
+		std::vector<std::string> vPackages;
+		boost::split(vPackages, pTypeFileDesc->package(), boost::is_any_of("."));
+		for(std::vector<std::string>::iterator iter = vPackages.begin();
+			iter != vPackages.end();
+			++iter)
+		{
+			ctemplate::TemplateDictionary* pPackageSectionDict = pTypeDict->AddSectionDictionary("PACKAGES");
+			pPackageSectionDict->SetValue("PACKAGE_NAME", *iter);
+		}
+	}
+}
+
+void SimpleRpcGenerator::GetOptions(const google::protobuf::UnknownFieldSet* pOptionSet,
+								    ctemplate::TemplateDictionary* pDict) const
+{
+	for(int i=0; i<pOptionSet->field_count(); ++i)
+	{
+		const ::google::protobuf::UnknownField& stField = pOptionSet->field(i);
+		ctemplate::TemplateDictionary* pOptionSectionDict = pDict->AddSectionDictionary("OPTIONS");
+
+		ctemplate::TemplateDictionary* pValueSectionDict = pOptionSectionDict->AddSectionDictionary(
+			(boost::format("OPTION_%u") % stField.number()).str());
+
+		switch(stField.type())
+		{
+		case ::google::protobuf::UnknownField::TYPE_LENGTH_DELIMITED:
+			pValueSectionDict->SetValue("OPTION_VALUE", stField.length_delimited());
+			break;
+		case ::google::protobuf::UnknownField::TYPE_VARINT:
+			pValueSectionDict->SetIntValue("OPTION_VALUE", stField.varint());
+			break;
+		case ::google::protobuf::UnknownField::TYPE_FIXED32:
+			pValueSectionDict->SetIntValue("OPTION_VALUE", stField.fixed32());
+			break;
+		case ::google::protobuf::UnknownField::TYPE_FIXED64:
+			pValueSectionDict->SetIntValue("OPTION_VALUE", stField.fixed64());
+			break;
+		default:
+			pValueSectionDict->SetValue("OPTION_VALUE", "");
+			break;
+		}
+	}
+}
+
+void SimpleRpcGenerator::GetServicesDict(const google::protobuf::FileDescriptor* pFileDesc,
+										 ctemplate::TemplateDictionary* pProtoDict) const
+{
+	pProtoDict->SetValue("FILE", pFileDesc->name());
+	pProtoDict->SetValue("NAME", pFileDesc->service(0)->name());
+
+	time_t now = time(NULL);
+	tm tmval;
+	localtime_r(&now, &tmval);
+
+	ctemplate::TemplateDictionary* pDateSectionDict = pProtoDict->AddSectionDictionary("DATE");
+	pDateSectionDict->SetIntValue("YEAR", tmval.tm_year + 1900);
+	pDateSectionDict->SetIntValue("MONTH", tmval.tm_mon + 1);
+	pDateSectionDict->SetIntValue("DAY", tmval.tm_mday);
+
+	if(pFileDesc->message_type_count() > 0 ||
+		pFileDesc->enum_type_count() > 0 ||
+		pFileDesc->extension_count() > 0)
+	{
+		ctemplate::TemplateDictionary* pProtolibSectionDict = pProtoDict->AddSectionDictionary("PROTOLIB");
+
+		std::string strFile = pFileDesc->name();
+		boost::replace_all(strFile, ".proto", "");
+		pProtolibSectionDict->SetValue("PROTOLIB_NAME", strFile);
+	}
+
+	if(!pFileDesc->package().empty())
+	{
+		std::vector<std::string> vPackages;
+		boost::split(vPackages, pFileDesc->package(), boost::is_any_of("."));
+		for(std::vector<std::string>::iterator iter = vPackages.begin();
+			iter != vPackages.end();
+			++iter)
+		{
+			ctemplate::TemplateDictionary* pPackageSectionDict = pProtoDict->AddSectionDictionary("PACKAGES");
+			pPackageSectionDict->SetValue("PACKAGE_NAME", *iter);
+		}
+	}
+
+	for(int i=0; i<pFileDesc->service_count(); ++i)
+	{
+		const google::protobuf::ServiceDescriptor* pServiceDesc = pFileDesc->service(i);
+
+		ctemplate::TemplateDictionary* pServiceSectionDict = pProtoDict->AddSectionDictionary("SERVICES");
+		pServiceSectionDict->SetValue("SERVICE_NAME", pServiceDesc->name());
+
+		for(int j=0; j<pServiceDesc->method_count(); ++j)
+		{
+			const google::protobuf::MethodDescriptor* pMethodDesc = pServiceDesc->method(j);
+			ctemplate::TemplateDictionary* pMethodSectionDict = pServiceSectionDict->AddSectionDictionary("METHODS");
+			pMethodSectionDict->SetValue("METHOD_NAME", pMethodDesc->name());
+
+			GetTypeDict(pMethodDesc->input_type(), pMethodSectionDict->AddSectionDictionary("INPUT_TYPE"));
+			GetTypeDict(pMethodDesc->output_type(), pMethodSectionDict->AddSectionDictionary("OUTPUT_TYPE"));
+
+			GetOptions(&pMethodDesc->options().unknown_fields(), pMethodSectionDict);
+		}
+
+		GetOptions(&pServiceDesc->options().unknown_fields(), pServiceSectionDict);
+	}
+	GetOptions(&pFileDesc->options().unknown_fields(), pProtoDict);
 }
 
 bool SimpleRpcGenerator::Generate(const google::protobuf::FileDescriptor* file,
@@ -39,57 +148,58 @@ bool SimpleRpcGenerator::Generate(const google::protobuf::FileDescriptor* file,
 								  google::protobuf::compiler::GeneratorContext* generator_context,
 								  std::string* error) const
 {
-	BUILD_LOG((boost::format("=========================== <<BEGIN CODE GENERATE %s>> ===========================\n") % file->name()).str());
-
 	char* szTemplatePath = getenv("PROTOCGENRPC_TEMPLATE");
 	if(!szTemplatePath)
 	{
 		error->append("[error] not set PROTOCGENRPC_TEMPLATE env.");
-		BUILD_LOG((boost::format("%s\n") % *error).str());
-		BUILD_LOG((boost::format("============================ <<END CODE GENERATE %s>> ============================\n") % file->name()).str());
 		return false;
 	}
 
-	BUILD_LOG((boost::format(">>> CHECKING %s\n") % file->name()).str());
-	if(Check(file))
+	if(file->service_count() != 1)
 	{
-		BUILD_LOG(">>> GENERATE DEFAULT CODE\n");
-		::google::protobuf::compiler::cpp::CppGenerator cpp;
-		bool bRet = cpp.Generate(file, parameter, generator_context, error);
-		if(!bRet)
-		{
-			BUILD_LOG((boost::format("%s\n") % *error).str());
-			BUILD_LOG((boost::format("============================ <<END CODE GENERATE %s>> ============================\n") % file->name()).str());
-			return bRet;
-		}
+		error->append("[error] only support one proto service.");
+		return false;
 	}
 
-	BUILD_LOG(">>> GENERATE SERVICE CODE\n");
-	for(int i=0; i<file->service_count(); ++i)
+	ctemplate::TemplateDictionary stProtoDict("PROTO");
+	GetServicesDict(file, &stProtoDict);
+
+	if(strcmp(szTemplatePath, "") == 0)
 	{
-		const google::protobuf::ServiceDescriptor* pServiceDesc = file->service(i);
-		RpcService service_generator(pServiceDesc);
-
-		BUILD_LOG((boost::format("service name: %s\n") % pServiceDesc->name()).str());
-
-		// Generate SERVICES Header
-		{
-			boost::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> output(
-				generator_context->Open((boost::format("%s.hpp") % pServiceDesc->name()).str()));
-			google::protobuf::io::Printer printer(output.get(), '$');
-			service_generator.GenerateHeader(&printer);
-		}
-
-		// Generate SERVICES Source
-		{
-			boost::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> output(
-				generator_context->Open((boost::format("%s.cc") % pServiceDesc->name()).str()));
-			google::protobuf::io::Printer printer(output.get(), '$');
-			service_generator.GenerateSource(&printer);
-		}
+		stProtoDict.DumpToString(error);
+		return false;
 	}
 
-	BUILD_LOG((boost::format("============================ <<END CODE GENERATE %s>> ============================\n") % file->name()).str());
+	DIR* pDir = opendir(szTemplatePath);
+	if(pDir == NULL)
+	{
+		error->append((boost::format("[error] open PROTOCGENRPC_TEMPLATE dir fail, %s.") % strerror(errno)).str());
+		return false;
+	}
+
+	dirent* pstInfo;
+	while((pstInfo = readdir(pDir)) != NULL)
+	{
+		if(strcmp(pstInfo->d_name, ".") == 0 ||
+			strcmp(pstInfo->d_name, "..") == 0)
+			continue;
+
+		ctemplate::Template* pTemplate = ctemplate::Template::StringToTemplate(pstInfo->d_name, ctemplate::DO_NOT_STRIP);
+		std::string strOutFile;
+		pTemplate->Expand(&strOutFile, &stProtoDict);
+		delete pTemplate;
+
+		std::string strTempleFile = (boost::format("%s%s") % szTemplatePath % pstInfo->d_name).str();
+		std::string strOutput;
+		ctemplate::ExpandTemplate(strTempleFile, ctemplate::DO_NOT_STRIP, &stProtoDict, &strOutput);
+
+		boost::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> output_stream(
+			generator_context->Open(strOutFile));
+		google::protobuf::io::Printer ioPrinter(output_stream.get(), '$');
+		ioPrinter.Print(strOutput.c_str());
+	}
+
+	closedir(pDir);
 	return true;
 }
 

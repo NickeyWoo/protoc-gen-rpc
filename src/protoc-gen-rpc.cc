@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <boost/format.hpp>
-#include "Log.hpp"
 #include "SimpleRpcGenerator.hpp"
 
 int main(int argc, char* argv[])

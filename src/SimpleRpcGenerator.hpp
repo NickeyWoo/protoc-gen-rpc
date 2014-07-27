@@ -13,6 +13,8 @@
 #include <google/protobuf/compiler/plugin.h>
 #include <google/protobuf/io/printer.h>
 
+#include <ctemplate/template.h>
+
 class SimpleRpcGenerator :
 	public google::protobuf::compiler::CodeGenerator
 {
@@ -20,7 +22,14 @@ public:
 	SimpleRpcGenerator();
 	~SimpleRpcGenerator();
 
-	bool Check(const google::protobuf::FileDescriptor* file) const;
+	void GetServicesDict(const google::protobuf::FileDescriptor* pFileDesc, 
+						 ctemplate::TemplateDictionary* pTypeDict) const;
+
+	void GetTypeDict(const google::protobuf::Descriptor* pTypeDesc,
+					 ctemplate::TemplateDictionary* pProtoDict) const;
+
+	void GetOptions(const google::protobuf::UnknownFieldSet* pOptionSet,
+				    ctemplate::TemplateDictionary* pDict) const;
 
 	bool Generate(const google::protobuf::FileDescriptor* file,
 				  const std::string& parameter,
