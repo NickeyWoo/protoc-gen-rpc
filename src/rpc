@@ -1,4 +1,66 @@
 #!/bin/sh
+#
+# SCRIPT: rpc
+# AUTHOR: nickeywoo <thenickey@gmail.com>
+# DATE: 2014/7/27
+#
+#
+
+usage() {
+	echo "Usage: rpc [build|dump|help]"
+}
+
+build() {
+	if [ $# -lt 3 ]
+	then
+		echo "Usage: rpc build [proto file] [template path]"
+		exit 1;
+	fi
+	OTHER=`other 3 "$*"`
+	PROTOCGENRPC_TEMPLATE=$3
+	protoc --plugin=./protoc-gen-rpc --rpc_out=./ $2 $OTHER
+}
+
+dump() {
+	if [ $# -lt 2 ]
+	then
+		echo "Usage: rpc dump [proto file]"
+		exit 1;
+	fi
+	OTHER=`other 2 "$*"`
+	PROTOCGENRPC_TEMPLATE=""
+	protoc --plugin=./protoc-gen-rpc --rpc_out=./ $2 $OTHER
+}
+
+other() {
+	RET=""
+	i=1
+	for X in $2
+	do
+		if [ $i -gt $1 ]
+		then
+			RET="$RET $X"
+		fi
+		i=$(($i+1))
+	done
+	echo $RET
+}
+
+case "$1" in
+	build)
+		build $@
+		;;
+	dump)
+		dump $@
+		;;
+	help)
+		usage $@
+		;;
+	*)
+		usage $@
+esac
+
+
 
 
 

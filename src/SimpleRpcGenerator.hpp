@@ -8,6 +8,8 @@
 #define __SIMPLERPC_GENERATOR_HPP__
 
 #include <string>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/unknown_field_set.h>
 #include <google/protobuf/compiler/code_generator.h>
 #include <google/protobuf/compiler/cpp/cpp_generator.h>
 #include <google/protobuf/compiler/plugin.h>
