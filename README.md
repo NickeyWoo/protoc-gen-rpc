@@ -21,9 +21,16 @@ service EchoService {
 }
 ```
 
-*2. exec protoc, auto generate rpc code.*
+*2. prepare template documents*
+```c++
+	main.cc
+	service.cc
+```
+
+*2. exec rpc, auto generate rpc code.*
 ```shell
-	protoc --plugin=../bin/protoc-gen-rpc ./example.proto --rpc_out=./
+	rpc dump Service.proto					# dump proto dict
+	rpc build Service.proto template		# generate code
 ```
 
 
