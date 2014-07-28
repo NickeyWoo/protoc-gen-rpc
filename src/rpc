@@ -17,6 +17,16 @@ build() {
 		echo "Usage: rpc build [proto file] [template path]"
 		exit 1;
 	fi
+	if !([ -f $2 ])
+	then
+		echo "error: not found proto file."
+		exit 2;
+	fi
+	if !([ -d $3 ])
+	then
+		echo "error: not found templates."
+		exit 2;
+	fi
 	OTHER=`other 3 "$*"`
 	PROTOCGENRPC_TEMPLATE=$3
 	protoc --plugin=$BASEPATH/protoc-gen-rpc --rpc_out=./ $2 $OTHER
@@ -27,6 +37,11 @@ dump() {
 	then
 		echo "Usage: rpc dump [proto file]"
 		exit 1;
+	fi
+	if !([ -f $2 ])
+	then
+		echo "error: not found proto file."
+		exit 2;
 	fi
 	OTHER=`other 2 "$*"`
 	PROTOCGENRPC_TEMPLATE=""

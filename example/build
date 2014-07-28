@@ -1,0 +1,6 @@
+#!/bin/sh
+
+rpc build ./Service.proto ./template
+make
+
+

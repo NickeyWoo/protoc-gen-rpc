@@ -1,0 +1,8 @@
+#!/bin/sh
+
+rm -f *.cc
+rm -f *.h
+rm -f *.o
+rm -f Makefile client Echo
+
+

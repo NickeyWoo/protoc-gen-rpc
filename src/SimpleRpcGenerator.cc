@@ -189,13 +189,13 @@ bool SimpleRpcGenerator::Generate(const google::protobuf::FileDescriptor* file,
 		pTemplate->Expand(&strOutFile, &stProtoDict);
 		delete pTemplate;
 
-		std::string strTempleFile = (boost::format("%s%s") % szTemplatePath % pstInfo->d_name).str();
+		std::string strTempleFile = (boost::format("%s/%s") % szTemplatePath % pstInfo->d_name).str();
 		std::string strOutput;
 		ctemplate::ExpandTemplate(strTempleFile, ctemplate::DO_NOT_STRIP, &stProtoDict, &strOutput);
 
 		boost::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> output_stream(
 			generator_context->Open(strOutFile));
-		google::protobuf::io::Printer ioPrinter(output_stream.get(), '$');
+		google::protobuf::io::Printer ioPrinter(output_stream.get(), 0x0);
 		ioPrinter.Print(strOutput.c_str());
 	}
 

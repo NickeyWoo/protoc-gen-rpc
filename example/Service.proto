@@ -1,0 +1,19 @@
+
+message Request
+{
+	required int32 seq = 1;
+	required string message = 2;
+}
+
+message Response
+{
+	required int32 seq = 1;
+	required string message = 2;
+}
+
+service Echo
+{
+	rpc Echo(Request) returns(Response);
+}
+
+
