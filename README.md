@@ -23,14 +23,14 @@ service EchoService {
 
 *2. prepare template documents*
 ```c++
-	main.cc
-	service.cc
+	template/main.cc
+	template/service.cc
 ```
 
 *2. exec rpc, auto generate rpc code.*
 ```shell
 	rpc dump Service.proto					# dump proto dict
-	rpc build Service.proto template		# generate code
+	rpc build Service.proto ./template/		# generate code
 ```
 
 
