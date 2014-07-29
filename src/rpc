@@ -28,7 +28,7 @@ build() {
 		exit 2;
 	fi
 	OTHER=`other 3 "$*"`
-	PROTOCGENRPC_TEMPLATE=$3
+	export PROTOCGENRPC_TEMPLATE=$3
 	protoc --plugin=$BASEPATH/protoc-gen-rpc --rpc_out=./ $2 $OTHER
 }
 
@@ -44,7 +44,7 @@ dump() {
 		exit 2;
 	fi
 	OTHER=`other 2 "$*"`
-	PROTOCGENRPC_TEMPLATE=""
+	export PROTOCGENRPC_TEMPLATE=""
 	protoc --plugin=$BASEPATH/protoc-gen-rpc --rpc_out=./ $2 $OTHER
 }
 
