@@ -180,8 +180,7 @@ bool SimpleRpcGenerator::Generate(const google::protobuf::FileDescriptor* file,
 	dirent* pstInfo;
 	while((pstInfo = readdir(pDir)) != NULL)
 	{
-		if(strcmp(pstInfo->d_name, ".") == 0 ||
-			strcmp(pstInfo->d_name, "..") == 0)
+		if(pstInfo->d_type != DT_REG)
 			continue;
 
 		ctemplate::Template* pTemplate = ctemplate::Template::StringToTemplate(pstInfo->d_name, ctemplate::DO_NOT_STRIP);
