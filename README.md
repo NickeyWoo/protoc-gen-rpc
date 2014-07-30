@@ -1,5 +1,6 @@
 # Protoc-gen-rpc
   Protoc-gen-rpc is third-party Add-ons for Protocol Buffers.
+  its use google::ctemplate to generate protobuf service.
 
 ## Example ##
 *1. write '.proto' file, and declare RPC service.*
@@ -29,8 +30,8 @@ service EchoService {
 
 *2. exec rpc, auto generate rpc code.*
 ```shell
-	rpc dump Service.proto					# dump proto dict
-	rpc build Service.proto ./template/		# generate code
+	rpc dump --proto=Service.proto								# dump proto dict
+	rpc build --proto=Service.proto --template=./template/		# generate code
 ```
 
 
