@@ -33,6 +33,9 @@ public:
 	void GetOptions(const google::protobuf::UnknownFieldSet* pOptionSet,
 				    ctemplate::TemplateDictionary* pDict) const;
 
+	void PushData(std::string strData,
+			 	  ctemplate::TemplateDictionary* pDataSectionDict) const;
+
 	bool Generate(const google::protobuf::FileDescriptor* file,
 				  const std::string& parameter,
 				  google::protobuf::compiler::GeneratorContext* generator_context,

@@ -1,0 +1,98 @@
+#!/bin/sh
+#
+# SCRIPT: rpc
+# AUTHOR: nickeywoo <thenickey@gmail.com>
+# DATE: 2014/7/27
+#
+
+BASEPATH=`dirname $0`
+
+usage() {
+	echo "Usage: rpc [build|dump|help]"
+	echo "rpc is Add-ons for Protocol Buffers"
+	echo "Options:"
+	echo "    build [--proto=FILE] [--template=TEMPLATE_DIR] [--data=KEY:VALUE]       generate service code"
+	echo "    dump [--proto=FILE] [--data=KEY:VALUE]                                  dump proto service dictionary"
+	echo "    help                                                                    print help information"
+	echo ""
+}
+
+parameters() {
+	GEN_DATACOUNT=0
+	for PARAM in $@
+	do
+		case `expr substr $PARAM 1 5` in
+			--pro)
+				GEN_PROTO=`expr $PARAM : "--proto=\(.*\)"`
+				;;
+			--tem)
+				GEN_TEMPLATE=`expr $PARAM : "--template=\(.*\)"`
+				;;
+			--dat)
+				DATA=`expr $PARAM : "--data=\(.*\)"`
+				export "PROTOCGENRPC_DATA_$GEN_DATACOUNT"=$DATA
+				GEN_DATACOUNT=$(($GEN_DATACOUNT+1))
+				;;
+			build)
+				;;
+			dump)
+				;;
+			help)
+				;;
+			*)
+				GEN_OTHER="$GEN_OTHER $PARAM"
+		esac
+	done
+	export PROTOCGENRPC_DATACOUNT=$GEN_DATACOUNT
+}
+
+build() {
+
+	# get parameters
+	parameters $@
+
+	if !([ -f $GEN_PROTO ])
+	then
+		echo "error: not found proto file."
+		exit 2;
+	fi
+	if !([ -d $GEN_TEMPLATE ])
+	then
+		echo "error: not found templates."
+		exit 2;
+	fi
+
+	export PROTOCGENRPC_TEMPLATE=$GEN_TEMPLATE
+	protoc --plugin=$BASEPATH/protoc-gen-rpc --rpc_out=./ $GEN_PROTO $GEN_OTHER
+}
+
+dump() {
+
+	# get parameters
+	parameters $@
+
+	if !([ -f $GEN_PROTO ])
+	then
+		echo "error: not found proto file."
+		exit 2;
+	fi
+
+	export PROTOCGENRPC_TEMPLATE=""
+	protoc --plugin=$BASEPATH/protoc-gen-rpc --rpc_out=./ $GEN_PROTO $GEN_OTHER
+}
+
+case "$1" in
+	build)
+		build $@
+		;;
+	dump)
+		dump $@
+		;;
+	*)
+		usage $@
+esac
+
+
+
+
+

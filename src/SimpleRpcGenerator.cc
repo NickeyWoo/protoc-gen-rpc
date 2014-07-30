@@ -63,15 +63,19 @@ void SimpleRpcGenerator::GetOptions(const google::protobuf::UnknownFieldSet* pOp
 		{
 		case ::google::protobuf::UnknownField::TYPE_LENGTH_DELIMITED:
 			pValueSectionDict->SetValue("OPTION_VALUE", stField.length_delimited());
+			pValueSectionDict->ShowSection((boost::format("OPTION_%u_%s") % stField.number() % stField.length_delimited()).str());
 			break;
 		case ::google::protobuf::UnknownField::TYPE_VARINT:
 			pValueSectionDict->SetIntValue("OPTION_VALUE", stField.varint());
+			pValueSectionDict->ShowSection((boost::format("OPTION_%u_%lu") % stField.number() % stField.varint()).str());
 			break;
 		case ::google::protobuf::UnknownField::TYPE_FIXED32:
 			pValueSectionDict->SetIntValue("OPTION_VALUE", stField.fixed32());
+			pValueSectionDict->ShowSection((boost::format("OPTION_%u_%u") % stField.number() % stField.fixed32()).str());
 			break;
 		case ::google::protobuf::UnknownField::TYPE_FIXED64:
 			pValueSectionDict->SetIntValue("OPTION_VALUE", stField.fixed64());
+			pValueSectionDict->ShowSection((boost::format("OPTION_%u_%lu") % stField.number() % stField.fixed64()).str());
 			break;
 		default:
 			pValueSectionDict->SetValue("OPTION_VALUE", "");
@@ -143,6 +147,24 @@ void SimpleRpcGenerator::GetServicesDict(const google::protobuf::FileDescriptor*
 	GetOptions(&pFileDesc->options().unknown_fields(), pProtoDict);
 }
 
+void SimpleRpcGenerator::PushData(std::string strData,
+							 	  ctemplate::TemplateDictionary* pDataSectionDict) const
+{
+	std::string::size_type pos = strData.find_first_of(':');
+	if(pos == std::string::npos)
+		return;
+
+	std::string strKey = strData.substr(0, pos);
+	boost::trim(strKey);
+	std::string strVal = strData.substr(pos + 1);
+	boost::trim(strVal);
+
+	if(strKey.empty() || strVal.empty())
+		return;
+
+	pDataSectionDict->SetValue(strKey, strVal);
+}
+
 bool SimpleRpcGenerator::Generate(const google::protobuf::FileDescriptor* file,
 								  const std::string& parameter,
 								  google::protobuf::compiler::GeneratorContext* generator_context,
@@ -163,6 +185,19 @@ bool SimpleRpcGenerator::Generate(const google::protobuf::FileDescriptor* file,
 
 	ctemplate::TemplateDictionary stProtoDict("PROTO");
 	GetServicesDict(file, &stProtoDict);
+
+	ctemplate::TemplateDictionary* pDataSectionDict = stProtoDict.AddSectionDictionary("DATA");
+	char* szDataCount = getenv("PROTOCGENRPC_DATACOUNT");
+	uint32_t dwDataCount = szDataCount==NULL?0:strtoul(szDataCount, NULL, 10);
+	for(uint32_t i=0; i<dwDataCount; ++i)
+	{
+		char* szData = getenv((boost::format("PROTOCGENRPC_DATA_%u") % i).str().c_str());
+		if(!szData)
+			continue;
+
+		std::string strData = std::string(szData);
+		PushData(strData, pDataSectionDict);
+	}
 
 	if(strcmp(szTemplatePath, "") == 0)
 	{
