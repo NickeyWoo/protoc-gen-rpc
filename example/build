@@ -1,6 +1,6 @@
 #!/bin/sh
 
-rpc build ./Service.proto ./template
+rpc build --proto=./Service.proto --template=./template
 make
 
 
