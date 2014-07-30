@@ -1,5 +1,7 @@
 # Protoc-gen-rpc
-  Protoc-gen-rpc is third-party Add-ons for Protocol Buffers. its use google::ctemplate to generate protobuf service code.
+  Protoc-gen-rpc is third-party Add-ons for Protocol Buffers. 
+  
+  its use google::ctemplate to generate protobuf service code.
 
 ## Dump Service Dictionary ##
   you can dump proto dictionary via rpc script.
