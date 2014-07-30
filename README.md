@@ -1,7 +1,7 @@
 # Protoc-gen-rpc
   Protoc-gen-rpc is third-party Add-ons for Protocol Buffers. 
 
-## Dump Service Dictionary ##
+## Service Dictionary ##
   you can dump proto dictionary via rpc script.
 ```shell
 	rpc dump --proto=Service.proto
