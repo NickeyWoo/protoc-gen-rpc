@@ -31,7 +31,7 @@ public:
 					 ctemplate::TemplateDictionary* pProtoDict) const;
 
 	void GetOptions(const google::protobuf::UnknownFieldSet* pOptionSet,
-				    ctemplate::TemplateDictionary* pDict) const;
+				    ctemplate::TemplateDictionary* pDict, std::string strPrefix) const;
 
 	void PushData(std::string strData,
 			 	  ctemplate::TemplateDictionary* pDataSectionDict) const;

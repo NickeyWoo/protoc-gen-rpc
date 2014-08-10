@@ -49,12 +49,12 @@ void SimpleRpcGenerator::GetTypeDict(const google::protobuf::Descriptor* pTypeDe
 }
 
 void SimpleRpcGenerator::GetOptions(const google::protobuf::UnknownFieldSet* pOptionSet,
-								    ctemplate::TemplateDictionary* pDict) const
+								    ctemplate::TemplateDictionary* pDict, std::string strPrefix) const
 {
 	for(int i=0; i<pOptionSet->field_count(); ++i)
 	{
 		const ::google::protobuf::UnknownField& stField = pOptionSet->field(i);
-		ctemplate::TemplateDictionary* pOptionSectionDict = pDict->AddSectionDictionary("OPTIONS");
+		ctemplate::TemplateDictionary* pOptionSectionDict = pDict->AddSectionDictionary((boost::format("%s_OPTIONS") % strPrefix).str());
 
 		ctemplate::TemplateDictionary* pValueSectionDict = pOptionSectionDict->AddSectionDictionary(
 			(boost::format("OPTION_%u") % stField.number()).str());
@@ -139,12 +139,12 @@ void SimpleRpcGenerator::GetServicesDict(const google::protobuf::FileDescriptor*
 			GetTypeDict(pMethodDesc->input_type(), pMethodSectionDict->AddSectionDictionary("INPUT_TYPE"));
 			GetTypeDict(pMethodDesc->output_type(), pMethodSectionDict->AddSectionDictionary("OUTPUT_TYPE"));
 
-			GetOptions(&pMethodDesc->options().unknown_fields(), pMethodSectionDict);
+			GetOptions(&pMethodDesc->options().unknown_fields(), pMethodSectionDict, "METHOD");
 		}
 
-		GetOptions(&pServiceDesc->options().unknown_fields(), pServiceSectionDict);
+		GetOptions(&pServiceDesc->options().unknown_fields(), pServiceSectionDict, "SERVICE");
 	}
-	GetOptions(&pFileDesc->options().unknown_fields(), pProtoDict);
+	GetOptions(&pFileDesc->options().unknown_fields(), pProtoDict, "FILE");
 }
 
 void SimpleRpcGenerator::PushData(std::string strData,
